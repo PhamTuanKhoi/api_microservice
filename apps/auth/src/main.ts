@@ -24,7 +24,6 @@ async function bootstrap() {
     },
   });
 
-  // warning: start
   app.startAllMicroservices();
 }
 bootstrap();
