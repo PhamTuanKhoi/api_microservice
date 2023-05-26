@@ -6,27 +6,22 @@ import { AuthService } from './auth.service';
 import { dataSourceOptions } from './db/data-source';
 import { UserEntity } from './entity/user.entity';
 import { SharedModule, SharedService } from '@app/shared';
+import { PostgresDBModule } from '@app/shared/postgresdb.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: './.env',
     }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      // useFactory: (configService: ConfigService) => ({
-      //   type: 'postgres',
-      //   url: configService.get<string>('POSTGRES_URI'),
-      //   autoLoadEntities: true,
-      //   synchronize: true,
-      // }),
-      useFactory: () => ({
-        ...dataSourceOptions,
-        autoLoadEntities: true,
-        // synchronize: true,
-      }),
-      inject: [ConfigService],
-    }),
+    // TypeOrmModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   useFactory: () => ({
+    //     ...dataSourceOptions,
+    //     autoLoadEntities: true,
+    //   }),
+    //   inject: [ConfigService],
+    // }),
+    PostgresDBModule,
     TypeOrmModule.forFeature([UserEntity]),
     SharedModule,
   ],
