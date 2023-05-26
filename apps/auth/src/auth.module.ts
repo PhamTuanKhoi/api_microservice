@@ -5,7 +5,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { dataSourceOptions } from './db/data-source';
 import { UserEntity } from './entity/user.entity';
-
+import { SharedModule, SharedService } from '@app/shared';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -28,6 +28,7 @@ import { UserEntity } from './entity/user.entity';
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([UserEntity]),
+    SharedModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],
