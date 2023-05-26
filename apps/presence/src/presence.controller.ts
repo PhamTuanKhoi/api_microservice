@@ -1,6 +1,5 @@
-import { SharedService } from '@app/shared';
-import { AuthGaurd } from '@app/shared/auth.guard';
-import { Controller, Get } from '@nestjs/common';
+import { AuthGaurd, SharedService } from '@app/shared';
+import { Controller } from '@nestjs/common';
 import { Ctx, MessagePattern, RmqContext } from '@nestjs/microservices';
 import { PresenceService } from './presence.service';
 

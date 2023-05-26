@@ -1,7 +1,7 @@
 import { SharedService } from '@app/shared';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { MicroserviceOptions } from '@nestjs/microservices';
 import { AuthModule } from './auth.module';
 
 async function bootstrap() {
