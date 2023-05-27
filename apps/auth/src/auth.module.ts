@@ -4,7 +4,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UserEntity } from './entity/user.entity';
-import { PostgresDBModule, SharedModule } from '@app/shared';
+import {
+  PostgresDBModule,
+  SharedModule,
+  SharedService,
+  UsersRepository,
+} from '@app/shared';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from '../strategy/jwt.strategy';
 @Module({
@@ -33,7 +38,22 @@ import { JwtStrategy } from '../strategy/jwt.strategy';
     SharedModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    {
+      provide: 'AuthServiceInterface',
+      useClass: AuthService,
+    },
+    {
+      provide: 'UsersRepositoryInterface',
+      useClass: UsersRepository,
+    },
+    {
+      provide: 'SharedServiceInterface',
+      useClass: SharedService,
+    },
+  ],
   exports: [TypeOrmModule],
 })
 export class AuthModule {}

@@ -2,6 +2,7 @@ import {
   ConflictException,
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -12,31 +13,34 @@ import { UserEntity } from './entity/user.entity';
 import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
+import { UserRepositoryInterface } from '@app/shared';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
+    @Inject('UsersRepositoryInterface')
+    private readonly usersRepository: UserRepositoryInterface,
     private readonly jwtService: JwtService,
   ) {}
 
   async getusers() {
-    return this.userRepository.find();
+    return this.usersRepository.findAll();
   }
 
   async findByEmail(email: string) {
-    return this.userRepository.findOne({
+    return this.usersRepository.findByCondition({
       where: { email },
       select: ['id', 'email', 'firstName', 'lastName', 'password'],
     });
   }
 
   async postUser() {
-    return this.userRepository.save({ firstName: 'mercdess' });
+    return this.usersRepository.save({ firstName: 'mercdess' });
   }
 
   async register(createUserDto: Readonly<CreateUserDto>) {
+    console.log(createUserDto);
+
     let { password, email } = createUserDto;
 
     const user = await this.findByEmail(email);
@@ -45,7 +49,7 @@ export class AuthService {
 
     password = await bcrypt.hashSync(password, 10);
 
-    const created = await this.userRepository.save({
+    const created = await this.usersRepository.save({
       ...createUserDto,
       password,
     });
