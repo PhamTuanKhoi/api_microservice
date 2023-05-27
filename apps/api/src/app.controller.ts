@@ -1,13 +1,15 @@
-import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
+import { AuthGuard } from '@app/shared';
+import { Body, Controller, Get, Inject, Post, UseGuards } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 
-export interface RegisterRequest {
-  firstName: string;
-  lastName: string;
+export interface LoginRequest {
   email: string;
   password: string;
 }
-
+export interface RegisterRequest extends LoginRequest {
+  firstName: string;
+  lastName: string;
+}
 @Controller()
 export class AppController {
   constructor(
@@ -20,6 +22,7 @@ export class AppController {
     return this.authClient.send({ cmd: 'get-users' }, {});
   }
 
+  @UseGuards(AuthGuard)
   @Get('presence')
   getPresence() {
     return this.presenceClient.send({ cmd: 'get-presence' }, {});
@@ -33,5 +36,10 @@ export class AppController {
   @Post('register')
   register(@Body() registerRequest: RegisterRequest) {
     return this.authClient.send({ cmd: 'register' }, registerRequest);
+  }
+
+  @Post('login')
+  login(@Body() loginRequest: LoginRequest) {
+    return this.authClient.send({ cmd: 'login' }, loginRequest);
   }
 }
