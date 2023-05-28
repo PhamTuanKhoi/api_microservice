@@ -1,5 +1,15 @@
-import { AuthGuard } from '@app/shared';
-import { Body, Controller, Get, Inject, Post, UseGuards } from '@nestjs/common';
+import { AuthGuard, UserInterceptor } from '@app/shared';
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 
 export interface LoginRequest {
@@ -28,6 +38,15 @@ export class AppController {
     return this.presenceClient.send({ cmd: 'get-presence' }, {});
   }
 
+  @Get('friend')
+  @UseInterceptors(UserInterceptor)
+  getFriend(@Req() request) {
+    return this.authClient.send(
+      { cmd: 'get-friend' },
+      { userId: request?.user?.id },
+    );
+  }
+
   @Post()
   postUser() {
     return this.authClient.send({ cmd: 'post-user' }, {});
@@ -41,5 +60,14 @@ export class AppController {
   @Post('login')
   login(@Body() loginRequest: LoginRequest) {
     return this.authClient.send({ cmd: 'login' }, loginRequest);
+  }
+
+  @Post('friend/:id')
+  @UseInterceptors(UserInterceptor)
+  createFriend(@Req() request, @Param('id') id: string) {
+    return this.authClient.send(
+      { cmd: 'create-friend' },
+      { userId: request?.user?.id, friendId: id },
+    );
   }
 }

@@ -1,4 +1,6 @@
 import {
+  BadGatewayException,
+  BadRequestException,
   ConflictException,
   HttpException,
   HttpStatus,
@@ -6,20 +8,23 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UserEntity } from './entity/user.entity';
 import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
-import { UserRepositoryInterface } from '@app/shared';
+import {
+  FriendRequestRepositoryInterface,
+  UserJwt,
+  UserRepositoryInterface,
+} from '@app/shared';
 
 @Injectable()
 export class AuthService {
   constructor(
     @Inject('UsersRepositoryInterface')
     private readonly usersRepository: UserRepositoryInterface,
+    @Inject('FriendRequestServiceInterface')
+    private readonly friendRequestRepository: FriendRequestRepositoryInterface,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -39,8 +44,6 @@ export class AuthService {
   }
 
   async register(createUserDto: Readonly<CreateUserDto>) {
-    console.log(createUserDto);
-
     let { password, email } = createUserDto;
 
     const user = await this.findByEmail(email);
@@ -96,5 +99,41 @@ export class AuthService {
     } catch (error) {
       throw new UnauthorizedException();
     }
+  }
+
+  // Decode: Giải mã chuỗi JWT để truy xuất thông tin bên trong, nhưng không xác thực tính hợp lệ của JWT.
+  // Verify: Kiểm tra tính hợp lệ của JWT bằng cách xác minh chữ ký và các điều kiện khác, đảm bảo rằng JWT không
+  // chỉ đúng về cú pháp mà còn là một JWT hợp lệ và chưa bị sửa đổi.
+
+  async getUserFromHeader(jwt: string) {
+    if (!jwt) return;
+    try {
+      return this.jwtService.decode(jwt) as UserJwt;
+    } catch (error) {
+      throw new BadRequestException();
+    }
+  }
+
+  async createFriend(userId: number, friendId: number) {
+    try {
+      const creator = await this.usersRepository.findOneById(userId);
+      const receiver = await this.usersRepository.findOneById(friendId);
+
+      if (creator === null || receiver === null)
+        throw new Error('user not found');
+
+      return this.friendRequestRepository.save({ creator, receiver });
+    } catch (error) {
+      throw new BadRequestException();
+    }
+  }
+
+  async getFriend(userId: number) {
+    const creator = await this.usersRepository.findOneById(userId);
+
+    return this.friendRequestRepository.findWithRelations({
+      where: [{ creator }, { receiver: creator }],
+      relations: ['creator', 'receiver'],
+    });
   }
 }
